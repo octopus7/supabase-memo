@@ -3,6 +3,7 @@ import { supabase, Memo } from './lib/supabase';
 import { AuthForm } from './components/AuthForm';
 import { MemoList } from './components/MemoList';
 import { MemoInput } from './components/MemoInput';
+import { BackupPage } from './components/BackupPage';
 import type { User } from '@supabase/supabase-js';
 
 const PAGE_SIZE = 50;
@@ -13,6 +14,7 @@ export default function App() {
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [showBackup, setShowBackup] = useState(false);
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -103,6 +105,13 @@ export default function App() {
                 <h1>📝 메모장</h1>
                 {user && (
                     <div className="user-info">
+                        <button
+                            className="btn-settings"
+                            onClick={() => setShowBackup(!showBackup)}
+                            title="백업"
+                        >
+                            ⚙️
+                        </button>
                         <span className="user-email">{user.email}</span>
                         <button className="btn-logout" onClick={handleLogout}>
                             로그아웃
@@ -113,6 +122,8 @@ export default function App() {
 
             {!user ? (
                 <AuthForm />
+            ) : showBackup ? (
+                <BackupPage onBack={() => setShowBackup(false)} />
             ) : (
                 <main className="memo-container">
                     <MemoList
