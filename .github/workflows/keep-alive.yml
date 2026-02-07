@@ -1,0 +1,49 @@
+name: Supabase Keep Alive
+
+on:
+  # 스케줄 트리거는 Secrets 설정 후 주석 해제하세요
+  # schedule:
+  #   # 매일 UTC 00:00에 실행 (한국시간 09:00)
+  #   - cron: '0 0 * * *'
+  workflow_dispatch: # 수동 실행만 가능
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Ping Supabase Database
+        run: |
+          response=$(curl -s -X POST \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/ping" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            -w "\n%{http_code}")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Status: $http_code"
+          
+          # RPC 함수가 없어도 테이블 직접 쿼리로 대체
+          if [ "$http_code" != "200" ]; then
+            echo "RPC failed, trying direct table query..."
+            response=$(curl -s -X GET \
+              "${{ secrets.SUPABASE_URL }}/rest/v1/memos?select=id&limit=1" \
+              -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+              -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+              -w "\n%{http_code}")
+            
+            http_code=$(echo "$response" | tail -n1)
+            echo "Table query HTTP Status: $http_code"
+          fi
+          
+          if [ "$http_code" != "200" ]; then
+            echo "Failed to ping Supabase"
+            exit 1
+          fi
+          
+          echo "✅ Supabase database pinged successfully!"
