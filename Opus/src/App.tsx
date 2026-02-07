@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { supabase, Memo } from './lib/supabase';
 import { AuthForm } from './components/AuthForm';
 import { MemoList } from './components/MemoList';
 import { MemoInput } from './components/MemoInput';
-import { BackupPage } from './components/BackupPage';
 import type { User } from '@supabase/supabase-js';
+
+// 코드 스플리팅: BackupPage와 JSZip은 백업 버튼 클릭 시에만 로드됨
+const BackupPage = lazy(() => import('./components/BackupPage').then(m => ({ default: m.BackupPage })));
 
 const PAGE_SIZE = 50;
 
@@ -123,7 +125,9 @@ export default function App() {
             {!user ? (
                 <AuthForm />
             ) : showBackup ? (
-                <BackupPage onBack={() => setShowBackup(false)} />
+                <Suspense fallback={<div className="loading">백업 기능 로딩 중...</div>}>
+                    <BackupPage onBack={() => setShowBackup(false)} />
+                </Suspense>
             ) : (
                 <main className="memo-container">
                     <MemoList
