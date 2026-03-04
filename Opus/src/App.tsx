@@ -8,7 +8,8 @@ import type { User } from '@supabase/supabase-js';
 // 코드 스플리팅: BackupPage와 JSZip은 백업 버튼 클릭 시에만 로드됨
 const BackupPage = lazy(() => import('./components/BackupPage').then(m => ({ default: m.BackupPage })));
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 10;
+const LOAD_MORE_SIZE = 30;
 
 export default function App() {
     const [user, setUser] = useState<User | null>(null);
@@ -66,11 +67,11 @@ export default function App() {
             .select('*')
             .lt('created_at', oldestMemo.created_at)
             .order('created_at', { ascending: false })
-            .range(0, PAGE_SIZE - 1);
+            .range(0, LOAD_MORE_SIZE - 1);
 
         if (!error && data) {
             setMemos((prev) => [...data.reverse(), ...prev]);
-            setHasMore(data.length === PAGE_SIZE);
+            setHasMore(data.length === LOAD_MORE_SIZE);
         }
         setLoadingMore(false);
     }, [loadingMore, hasMore, memos]);

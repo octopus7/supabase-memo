@@ -17,8 +17,8 @@ export function MemoList({ memos, hasMore, loadingMore, onLoadMore }: MemoListPr
     // 스크롤 위치 관리
     useEffect(() => {
         if (listRef.current) {
-            // 새 메모 추가 시 (길이가 1 증가) 스크롤 맨 아래로
-            if (memos.length === prevLengthRef.current + 1) {
+            // 초기 로딩 시 (0개 -> 여러개) 또는 새 메모 추가 시 (1개 증가) 스크롤 맨 아래로
+            if (prevLengthRef.current === 0 || memos.length === prevLengthRef.current + 1) {
                 listRef.current.scrollTop = listRef.current.scrollHeight;
             }
             prevLengthRef.current = memos.length;
@@ -89,8 +89,8 @@ export function MemoList({ memos, hasMore, loadingMore, onLoadMore }: MemoListPr
                             <div className="date-divider">{formatDate(memo.created_at)}</div>
                         )}
                         <div className="memo-item">
-                            <div className="memo-bubble">{memo.content}</div>
                             <div className="memo-time">{formatTime(memo.created_at)}</div>
+                            <div className="memo-bubble">{memo.content}</div>
                         </div>
                     </div>
                 );
